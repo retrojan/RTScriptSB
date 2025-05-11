@@ -1,3 +1,11 @@
+
+-- Защита от дублирования GUI
+if game:GetService("CoreGui"):FindFirstChild("AFKToolGUI") then
+    game:GetService("CoreGui").AFKToolGUI:Destroy()
+end
+
+
+
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -9,7 +17,7 @@ local flyActivated = false
         Title = "ReTrojan Script",
         Text = "Script activated\nHave a fun",
         Icon = "rbxassetid://118017846388806",
-        Duration = 10
+        Duration = 5
     })
 
 local ScreenGui = Instance.new("ScreenGui")
