@@ -142,30 +142,65 @@ Frame.Position = UDim2.new(0, 20, 1, -190) -- Обновите позицию с
 
 
 
-
--- Телепортация в AFK-зону
 local function teleportToAFK()
-    local targetPosition = Vector3.new(50000, 5000, 50000)
+    local targetPosition = Vector3.new(50000, 100, 50000) -- Пол на высоте Y=100
+    local floorSize = Vector3.new(200, 1, 200)  -- Размер пола (X, толщина, Z)
+    local wallHeight = 40  -- Высота стен от пола
     
     if not Player.Character then
         Player.CharacterAdded:Wait()
     end
     local HumanoidRootPart = Player.Character:WaitForChild("HumanoidRootPart")
-    
     HumanoidRootPart.CFrame = CFrame.new(targetPosition)
-    
+
     if not platform or not platform.Parent then
+        -- Пол (основание)
         platform = Instance.new("Part")
-        platform.Name = "GiantAFK_Platform"
+        platform.Name = "AFK_Floor"
         platform.Anchored = true
-        platform.Size = Vector3.new(500, 3, 500)
+        platform.Size = floorSize
         platform.Transparency = 0.5
         platform.CanCollide = true
-        platform.Position = targetPosition - Vector3.new(0, 2.5, 0)
+        platform.Position = targetPosition - Vector3.new(0, 0.5, 0) -- Центрируем по Y
         platform.Parent = workspace
+
+        -- Стены (точно от пола до потолка)
+        local walls = {
+            -- Передняя стена
+            {Name = "AFK_Wall_Front", Size = Vector3.new(floorSize.X, wallHeight, 1),
+             Position = targetPosition + Vector3.new(0, wallHeight/2 - 0.5, floorSize.Z/2)},
+            
+            -- Задняя стена
+            {Name = "AFK_Wall_Back", Size = Vector3.new(floorSize.X, wallHeight, 1),
+             Position = targetPosition + Vector3.new(0, wallHeight/2 - 0.5, -floorSize.Z/2)},
+            
+            -- Левая стена
+            {Name = "AFK_Wall_Left", Size = Vector3.new(1, wallHeight, floorSize.Z),
+             Position = targetPosition + Vector3.new(-floorSize.X/2, wallHeight/2 - 0.5, 0)},
+            
+            -- Правая стена
+            {Name = "AFK_Wall_Right", Size = Vector3.new(1, wallHeight, floorSize.Z),
+             Position = targetPosition + Vector3.new(floorSize.X/2, wallHeight/2 - 0.5, 0)},
+            
+            -- Потолок (ровно над стенами)
+            {Name = "AFK_Ceiling", Size = Vector3.new(floorSize.X, 1, floorSize.Z),
+             Position = targetPosition + Vector3.new(0, wallHeight - 0.5, 0)}
+        }
+
+        -- Создаём стены и потолок
+        for _, wall in ipairs(walls) do
+            local part = Instance.new("Part")
+            part.Name = wall.Name
+            part.Anchored = true
+            part.Size = wall.Size
+            part.Transparency = 0.5
+            part.CanCollide = true
+            part.Material = Enum.Material.SmoothPlastic
+            part.Position = wall.Position
+            part.Parent = workspace
+        end
     end
 end
-
 -- Основной цикл для кликера
 RunService.Heartbeat:Connect(function()
     if isClicking and (os.time() - lastClickTime) >= clickInterval then
